@@ -1,0 +1,5 @@
+# X AI News -> Telegram cron 範例
+# 編輯 crontab:  crontab -e
+
+# 每 30 分鐘抓一次最新推文
+*/30 * * * * /ABSOLUTE/PATH/TO/x-telegram-news-bot/scripts/run_fetch.sh >> /ABSOLUTE/PATH/TO/x-telegram-news-bot/data/cron.log 2>&1
