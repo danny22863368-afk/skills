@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FAFAF7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="健身教練">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+</head>
+<body>
+<title>Danny 健身教練</title>
+<style>
+/* ============ 設計 tokens:延續課表的 IPF 槓片視覺 ============ */
+:root{
+  --paper:#FAFAF7; --card:#FFFFFF; --ink:#16181D; --muted:#6B6E76;
+  --line:#D9D9D2; --soft:#F0F0EA; --soft2:#F7F7F2;
+  --red:#C8102E; --blue:#0057B8; --yellow:#E0A800; --green:#00843D;
+  --yellow-text:#8A6A00;
+  --good:#00843D; --warn:#B87400; --bad:#C8102E;
+  --shadow:0 1px 0 rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#131318; --card:#1C1C23; --ink:#EDEDE8; --muted:#9A9DA6;
+    --line:#33343C; --soft:#22232A; --soft2:#1A1A20;
+    --red:#F0546A; --blue:#4E8FE0; --yellow:#B8860B; --green:#2FA45F;
+    --yellow-text:#D9A420;
+    --good:#2FA45F; --warn:#D9A420; --bad:#F0546A;
+    --shadow:none;
+  }
+}
+:root[data-theme="light"]{
+  --paper:#FAFAF7; --card:#FFFFFF; --ink:#16181D; --muted:#6B6E76;
+  --line:#D9D9D2; --soft:#F0F0EA; --soft2:#F7F7F2;
+  --red:#C8102E; --blue:#0057B8; --yellow:#E0A800; --green:#00843D;
+  --yellow-text:#8A6A00; --good:#00843D; --warn:#B87400; --bad:#C8102E;
+  --shadow:0 1px 0 rgba(0,0,0,.04);
+}
+:root[data-theme="dark"]{
+  --paper:#131318; --card:#1C1C23; --ink:#EDEDE8; --muted:#9A9DA6;
+  --line:#33343C; --soft:#22232A; --soft2:#1A1A20;
+  --red:#F0546A; --blue:#4E8FE0; --yellow:#B8860B; --green:#2FA45F;
+  --yellow-text:#D9A420; --good:#2FA45F; --warn:#D9A420; --bad:#F0546A;
+  --shadow:none;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--paper)}
+body{
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  font-size:15.5px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 96px}
+
+/* ============ Header ============ */
+header.app{
+  max-width:560px;margin:0 auto;padding:18px 14px 12px;
+  display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--ink);
+}
+.h-title{flex:1;min-width:0}
+.h-title .eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
+}
+.h-title h1{font-size:21px;font-weight:900;line-height:1.25;letter-spacing:-.01em}
+.plate{width:30px;height:30px;border-radius:50%;border:5px solid var(--muted);position:relative;flex-shrink:0}
+.plate::after{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--paper);border:2px solid rgba(0,0,0,.15)}
+.iconbtn{
+  background:none;border:1.5px solid var(--line);color:var(--ink);width:38px;height:38px;
+  font-size:17px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.iconbtn:hover{border-color:var(--ink)}
+
+/* ============ 通用元件 ============ */
+section.block{margin-top:22px}
+h2.blk{
+  font-size:17px;font-weight:900;margin-bottom:4px;display:flex;align-items:center;gap:8px;
+}
+.sub{color:var(--muted);font-size:13.5px;margin-bottom:12px}
+.card{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
+.chip{
+  display:inline-block;font-weight:700;font-size:12.5px;padding:1px 8px;
+  border:1.5px solid var(--ink);white-space:nowrap;
+}
+.btn{
+  font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+  border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  padding:9px 14px;
+}
+.btn.ghost{background:none;color:var(--ink)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.tag{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+input[type=text],input[type=number],input[type=password],select{
+  font:inherit;color:var(--ink);background:var(--card);
+  border:1.5px solid var(--line);padding:8px 10px;width:100%;
+}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+
+/* ============ 今日訓練 ============ */
+.day-banner{
+  margin-top:18px;padding:14px 16px;border:2px solid var(--ink);
+  display:flex;align-items:center;gap:12px;background:var(--card);
+}
+.day-banner .plate{width:34px;height:34px}
+.day-banner b{font-size:17px;font-weight:900;display:block;line-height:1.3}
+.day-banner span{font-size:13px;color:var(--muted)}
+.verdict{margin-top:14px;padding:14px 16px;border-left:4px solid var(--muted)}
+.verdict.good{border-left-color:var(--good);background:color-mix(in srgb,var(--good) 8%,var(--card))}
+.verdict.warn{border-left-color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--card))}
+.verdict.bad{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--card))}
+.verdict b{font-size:15px}
+.verdict .detail{font-size:13px;color:var(--muted);margin-top:2px}
+.exc{margin-top:14px;overflow:hidden}
+.exc-head{padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.exc-head .no{
+  font-weight:900;font-size:13px;width:22px;height:22px;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);
+}
+.exc-title{flex:1;min-width:0}
+.exc-title b{font-size:15.5px;font-weight:800;display:block}
+.exc-title .meta{font-size:12.5px;color:var(--muted)}
+.exc-done{font-size:12px;font-weight:800;white-space:nowrap;margin-top:3px}
+.suggest{
+  margin:0 14px;padding:9px 12px;background:var(--soft);border:1px dashed var(--line);
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+}
+.suggest .w{font-size:19px;font-weight:900}
+.suggest .why{font-size:12px;color:var(--muted);flex:1;min-width:120px}
+.sets{padding:10px 14px 4px;display:flex;flex-wrap:wrap;gap:6px}
+.setpill{
+  font-size:12.5px;font-weight:700;padding:3px 9px;border:1.5px solid var(--green);
+  color:var(--good);
+}
+.logrow{display:flex;gap:8px;padding:8px 14px 14px;align-items:stretch}
+.step{display:flex;border:1.5px solid var(--line);flex:1;min-width:0}
+.step button{
+  font:inherit;font-weight:800;background:var(--soft);border:none;color:var(--ink);
+  width:34px;cursor:pointer;flex-shrink:0;
+}
+.step .val{flex:1;min-width:0;text-align:center;align-self:center;font-weight:800;font-size:14.5px}
+.step .val small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);line-height:1.1}
+.exc-foot{padding:0 14px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.linky{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer;text-decoration:underline;padding:2px}
+.alts{margin:0 14px 12px;padding:10px 12px;background:var(--soft2);border:1px solid var(--line);font-size:13px}
+.alts b{font-size:12px;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:2px}
+.restday{
+  margin-top:16px;padding:22px 18px;border:1px dashed var(--line);color:var(--muted);
+  font-size:14px;background:var(--card);
+}
+.restday b{color:var(--ink);font-size:16px;display:block;margin-bottom:4px}
+
+/* ============ 休息計時器 ============ */
+#timer{
+  position:fixed;left:0;right:0;bottom:64px;z-index:40;display:none;
+}
+#timer.on{display:block}
+#timer .tin{
+  max-width:560px;margin:0 auto;background:var(--ink);color:var(--paper);
+  padding:10px 16px;display:flex;align-items:center;gap:14px;
+}
+#timer .t-num{font-size:26px;font-weight:900;min-width:86px}
+#timer .t-label{flex:1;font-size:12.5px;opacity:.8;line-height:1.3}
+#timer button{
+  font:inherit;font-weight:700;font-size:13px;background:none;color:var(--paper);
+  border:1.5px solid color-mix(in srgb,var(--paper) 50%,transparent);padding:5px 10px;cursor:pointer;
+}
+#timer .t-bar{position:absolute;top:0;left:0;height:3px;background:var(--green);transition:width 1s linear}
+
+/* ============ 課表 tab ============ */
+.wk{margin-top:14px}
+.wk .exrow{display:flex;gap:10px;padding:9px 14px;border-top:1px solid var(--line);font-size:13.5px;align-items:baseline}
+.wk .exrow:first-of-type{border-top:none}
+.wk .exrow .nm{flex:1}
+.wk .exrow .nm small{color:var(--muted);display:block;font-size:11.5px}
+.wk .exrow .rx{font-weight:800;font-size:12.5px;white-space:nowrap}
+.wk-head{padding:11px 14px;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line)}
+.wk-head b{flex:1;font-size:15px;font-weight:900}
+.wk-head .tag{font-weight:700}
+details.wk summary{list-style:none;cursor:pointer}
+details.wk summary::-webkit-details-marker{display:none}
+
+/* ============ 飲食 ============ */
+.meters{padding:14px}
+.meter{margin-bottom:14px}
+.meter:last-child{margin-bottom:2px}
+.meter .mrow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:4px}
+.meter .mrow b{font-size:14px}
+.meter .mrow .v{font-weight:800}
+.meter .track{height:10px;background:var(--soft);position:relative;border:1px solid var(--line)}
+.meter .fill{position:absolute;top:0;left:0;bottom:0;background:var(--ink)}
+.meter .fill.ok{background:var(--good)}
+.meter .fill.over{background:var(--warn)}
+.meter .band{position:absolute;top:-3px;bottom:-3px;border-left:2px solid var(--good);opacity:.8}
+.ai-zone{padding:14px}
+.ai-zone .hintline{font-size:12.5px;color:var(--muted);margin-top:8px}
+#aiPreview{max-width:100%;max-height:220px;border:1px solid var(--line);display:none;margin-top:10px}
+.ai-result{margin-top:10px;border:1px solid var(--line)}
+.ai-result .fr{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:center;font-size:13.5px}
+.ai-result .fr:first-child{border-top:none}
+.ai-result .fr .fn{flex:1}
+.ai-result .fr .fm{color:var(--muted);font-size:12px;white-space:nowrap}
+.ai-err{margin-top:10px;padding:10px 12px;border-left:4px solid var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--card));font-size:13px}
+.foodlist .fr{display:flex;gap:8px;padding:9px 14px;border-top:1px solid var(--line);align-items:center;font-size:13.5px}
+.foodlist .fr .fn{flex:1;min-width:0}
+.foodlist .fr .fn small{display:block;color:var(--muted);font-size:11.5px}
+.foodlist .fr .fp{font-weight:800;white-space:nowrap}
+.foodlist .fr .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px}
+.dbsearch{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:8px}
+.dbhits{max-height:250px;overflow-y:auto}
+.dbhits .hit{display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--line);align-items:center;font-size:13.5px;cursor:pointer}
+.dbhits .hit:hover{background:var(--soft2)}
+.dbhits .hit .fm{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
+
+/* ============ 數據 ============ */
+.vol{padding:12px 14px}
+.vrow{display:grid;grid-template-columns:52px 1fr 74px;gap:10px;align-items:center;margin-bottom:9px;font-size:13px}
+.vrow .vn{font-weight:700}
+.vrow .track{height:12px;background:var(--soft);position:relative;border:1px solid var(--line)}
+.vrow .fill{position:absolute;top:0;left:0;bottom:0}
+.vrow .band{position:absolute;top:-3px;bottom:-3px;background:color-mix(in srgb,var(--good) 18%,transparent);border-left:1.5px dashed var(--good);border-right:1.5px dashed var(--good)}
+.vrow .vv{font-size:12.5px;color:var(--muted);text-align:right}
+.chart-card{margin-top:14px}
+.chart-card .ch-head{padding:11px 14px 0;display:flex;gap:8px;align-items:baseline}
+.chart-card .ch-head b{font-size:14.5px;font-weight:900}
+.chart-card .ch-head span{font-size:12px;color:var(--muted)}
+.chart-card svg{display:block;width:100%;height:auto}
+.empty{padding:18px 14px;color:var(--muted);font-size:13.5px;text-align:center}
+
+/* ============ Tab bar ============ */
+nav.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:var(--card);border-top:2px solid var(--ink);
+}
+nav.tabs .tin{max-width:560px;margin:0 auto;display:flex}
+nav.tabs button{
+  flex:1;font:inherit;background:none;border:none;color:var(--muted);
+  padding:9px 4px calc(9px + env(safe-area-inset-bottom));cursor:pointer;
+  font-size:11.5px;font-weight:700;letter-spacing:.02em;
+}
+nav.tabs button .ic{display:block;font-size:19px;line-height:1.2}
+nav.tabs button.on{color:var(--ink)}
+nav.tabs button.on .ic{transform:translateY(-1px)}
+
+/* ============ Modal ============ */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal .m-in{background:var(--paper);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-top:3px solid var(--ink);padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.m-in h3{font-size:17px;font-weight:900;margin-bottom:12px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.fld .note{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+.view{display:none}
+.view.on{display:block}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="app">
+  <div class="plate" id="hPlate"></div>
+  <div class="h-title">
+    <div class="eyebrow" id="hDate">—</div>
+    <h1 id="hTitle">健身教練</h1>
+  </div>
+  <button class="iconbtn" id="btnSettings" aria-label="設定">⚙</button>
+</header>
+
+<div class="wrap">
+  <main id="viewToday" class="view on"></main>
+  <main id="viewPlan" class="view"></main>
+  <main id="viewFood" class="view"></main>
+  <main id="viewStats" class="view"></main>
+</div>
+
+<div id="timer" role="timer">
+  <div class="tin">
+    <div class="t-bar" id="tBar"></div>
+    <div class="t-num num" id="tNum">0:00</div>
+    <div class="t-label" id="tLabel">組間休息</div>
+    <button id="tPlus">+30s</button>
+    <button id="tStop">結束</button>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="主選單">
+  <div class="tin">
+    <button data-v="Today" class="on"><span class="ic">🏋️</span>今日</button>
+    <button data-v="Plan"><span class="ic">📋</span>課表</button>
+    <button data-v="Food"><span class="ic">🍱</span>飲食</button>
+    <button data-v="Stats"><span class="ic">📈</span>數據</button>
+  </div>
+</nav>
+
+<div class="modal" id="modal"><div class="m-in" id="modalIn"></div></div>
+
+<script>
+'use strict';
+/* ================= 資料層 ================= */
+const LS_KEY = 'danny-fit-v1';
+const S = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s && s.logs) return s; }catch(e){}
+  return { logs:{}, food:{}, set:{ key:'', kcal:2600, p:120, c:320, f:75, bw:68 } };
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ================= 課表資料(來自 Danny 一週四練課表)================= */
+/* unit: bar=槓鈴總重kg / db=啞鈴每手kg / mc=器械kg / bw=自重(重量欄=附加負重) */
+const EX = {
+  bench:    {n:'槓鈴臥推',    hint:'當日主項,重量最重',   m:'胸',   sets:4, lo:6,  hi:8,  rest:165, start:40, inc:2.5, unit:'bar', alts:['啞鈴平板臥推','史密斯臥推','胸推機']},
+  incline:  {n:'上斜啞鈴臥推', hint:'上胸',               m:'胸',   sets:3, lo:8,  hi:12, rest:120, start:14, inc:2,   unit:'db',  alts:['上斜槓鈴臥推','上斜胸推機','低位繩索夾胸']},
+  latpull:  {n:'滑輪下拉',    hint:'背闊肌',             m:'背',   sets:3, lo:8,  hi:12, rest:120, start:45, inc:5,   unit:'mc',  alts:['輔助引體向上','直臂下拉','單臂滑輪下拉']},
+  row_s:    {n:'坐姿划船',    hint:'中背厚度',           m:'背',   sets:3, lo:10, hi:12, rest:90,  start:40, inc:5,   unit:'mc',  alts:['胸支撐划船','單臂啞鈴划船','T槓划船']},
+  lateral:  {n:'側平舉',      hint:'中三角肌',           m:'肩',   sets:3, lo:12, hi:15, rest:75,  start:7,  inc:1,   unit:'db',  alts:['繩索側平舉','機械側平舉']},
+  pushdown: {n:'三頭下壓',    hint:'肱三頭肌',           m:'三頭', sets:3, lo:10, hi:12, rest:60,  start:20, inc:2.5, unit:'mc',  alts:['過頭繩索伸展','窄握臥推','雙槓撐體']},
+  squat:    {n:'槓鈴深蹲',    hint:'當日主項',           m:'股四', sets:4, lo:6,  hi:8,  rest:180, start:50, inc:2.5, unit:'bar', alts:['高背槓深蹲','箱上蹲','腿推機(加重)']},
+  rdl:      {n:'羅馬尼亞硬舉', hint:'腿後鏈',             m:'腿後', sets:3, lo:8,  hi:10, rest:150, start:50, inc:2.5, unit:'bar', alts:['啞鈴RDL','背伸展','早安體前屈']},
+  legpress: {n:'腿推機',      hint:'股四頭',             m:'股四', sets:3, lo:10, hi:12, rest:120, start:90, inc:10,  unit:'mc',  alts:['哈克深蹲','啞鈴分腿蹲']},
+  legcurl:  {n:'俯臥腿彎舉',  hint:'腿後孤立',           m:'腿後', sets:3, lo:10, hi:12, rest:90,  start:30, inc:5,   unit:'mc',  alts:['坐姿腿彎舉','瑞士球腿彎舉']},
+  calf:     {n:'站姿提踵',    hint:'小腿',               m:'小腿', sets:4, lo:12, hi:15, rest:60,  start:40, inc:5,   unit:'mc',  alts:['坐姿提踵','腿推機提踵']},
+  pullup:   {n:'引體向上',    hint:'做不到可用輔助機或彈力帶', m:'背', sets:4, lo:6, hi:10, rest:150, start:0, inc:2.5, unit:'bw', alts:['滑輪下拉 4×8–10','離心引體(慢降5秒)','輔助引體機']},
+  bbrow:    {n:'槓鈴划船',    hint:'中背主項',           m:'背',   sets:4, lo:8,  hi:10, rest:150, start:40, inc:2.5, unit:'bar', alts:['胸支撐划船','Pendlay 划船']},
+  dbbench:  {n:'啞鈴平板臥推', hint:'胸',                 m:'胸',   sets:3, lo:8,  hi:12, rest:120, start:16, inc:2,   unit:'db',  alts:['槓鈴臥推','機械胸推']},
+  pec:      {n:'蝴蝶機夾胸',  hint:'胸孤立',             m:'胸',   sets:3, lo:12, hi:15, rest:75,  start:35, inc:5,   unit:'mc',  alts:['繩索夾胸','啞鈴飛鳥']},
+  facepull: {n:'繩索面拉',    hint:'後三角・肩袖健康',    m:'後肩', sets:3, lo:12, hi:15, rest:60,  start:15, inc:2.5, unit:'mc',  alts:['反向飛鳥機','俯身啞鈴飛鳥']},
+  curl:     {n:'啞鈴二頭彎舉', hint:'肱二頭肌',           m:'二頭', sets:3, lo:10, hi:12, rest:60,  start:10, inc:1,   unit:'db',  alts:['槓鈴彎舉','斜板彎舉','錘式彎舉']},
+  dead:     {n:'傳統硬舉',    hint:'當日主項,組數少強度高', m:'腿後', sets:3, lo:5, hi:6, rest:180, start:60, inc:5,  unit:'bar', alts:['六角槓硬舉','架上拉']},
+  split:    {n:'分腿蹲',      hint:'每邊各做,左右算 1 組', m:'股四', sets:3, lo:8,  hi:10, rest:120, start:10, inc:2,  unit:'db',  alts:['保加利亞分腿蹲','弓步走']},
+  legext:   {n:'腿伸展機',    hint:'股四頭孤立',          m:'股四', sets:3, lo:12, hi:15, rest:90,  start:35, inc:5,  unit:'mc',  alts:['西西深蹲','單腿伸展']},
+  hip:      {n:'槓鈴臀推',    hint:'臀大肌',             m:'臀',   sets:3, lo:10, hi:12, rest:90,  start:40, inc:5,   unit:'bar', alts:['臀推機','羅馬尼亞硬舉']},
+  legraise: {n:'懸垂舉腿',    hint:'核心,做不動改捲腹',   m:'核心', sets:3, lo:10, hi:12, rest:60,  start:0,  inc:0,   unit:'bw',  alts:['捲腹','死蟲式','棒式 45–60 秒']},
+};
+const PROGRAM = {
+  1:{name:'上半身 A(胸主導)', sub:'胸 10 組・背 6 組・肩三頭收尾', color:'red',    time:'約 65–75 分', list:['bench','incline','latpull','row_s','lateral','pushdown'], note:'動作前先熱身 8–10 分鐘:5 分鐘飛輪/跑步機 + 空槓臥推 2 組暖身組。'},
+  2:{name:'下半身 A(蹲主導)', sub:'股四頭・腿後・小腿',           color:'blue',   time:'約 60–70 分', list:['squat','rdl','legpress','legcurl','calf'], note:'深蹲前務必充分熱身髖與踝關節;第一次做請從空槓開始找動作模式。'},
+  4:{name:'上半身 B(背主導)', sub:'背 11 組・胸 6 組・肩二頭收尾', color:'yellow', time:'約 65–75 分', list:['pullup','bbrow','dbbench','pec','facepull','curl'], note:'引體向上若一下都做不到:改用滑輪下拉 4×8–10,每週練習離心引體(慢慢下降 5 秒)。'},
+  5:{name:'下半身 B(髖主導)+ 核心', sub:'硬舉・單邊訓練・臀・腹', color:'green',  time:'約 60–70 分', list:['dead','split','legext','hip','legraise'], note:'傳統硬舉與週二的羅馬尼亞硬舉不同:從地面拉起,每一下都可放回地面重新啟動。'},
+};
+const DOW = ['週日','週一','週二','週三','週四','週五','週六'];
+const CSS_COLOR = {red:'var(--red)', blue:'var(--blue)', yellow:'var(--yellow)', green:'var(--green)'};
+const TEXT_COLOR = {red:'var(--red)', blue:'var(--blue)', yellow:'var(--yellow-text)', green:'var(--green)'};
+const UNIT_LABEL = {bar:'kg', db:'kg/手', mc:'kg', bw:'kg 負重'};
+
+/* ================= 食物資料庫(常見台灣食物)================= */
+/* u:'g' → 每100g;u:'份' → 每份。 q = 預設份量 */
+const FOOD_DB = [
+  {n:'雞胸肉(熟)', u:'g', q:150, kcal:165, p:31,  c:0,   f:3.6},
+  {n:'去皮雞腿肉(熟)', u:'g', q:120, kcal:155, p:24, c:0,  f:6},
+  {n:'豬里肌(熟)', u:'g', q:120, kcal:143, p:26,  c:0,   f:4},
+  {n:'牛腱/瘦牛肉(熟)', u:'g', q:120, kcal:175, p:28, c:0, f:7},
+  {n:'鮭魚(熟)',   u:'g', q:120, kcal:208, p:20,  c:0,   f:13},
+  {n:'鯛魚片(熟)', u:'g', q:120, kcal:100, p:21,  c:0,   f:1.5},
+  {n:'白飯',       u:'g', q:250, kcal:130, p:2.7, c:28,  f:0.3},
+  {n:'糙米飯',     u:'g', q:250, kcal:112, p:2.6, c:24,  f:0.9},
+  {n:'地瓜',       u:'g', q:200, kcal:86,  p:1.6, c:20,  f:0.1},
+  {n:'燕麥(乾)',   u:'g', q:60,  kcal:389, p:17,  c:66,  f:7},
+  {n:'全麥吐司',   u:'份', q:1,  kcal:75,  p:3.5, c:13,  f:1, note:'1片'},
+  {n:'雞蛋',       u:'份', q:2,  kcal:78,  p:6.9, c:0.4, f:5.2, note:'1顆'},
+  {n:'茶葉蛋',     u:'份', q:1,  kcal:75,  p:7,   c:1,   f:5, note:'1顆'},
+  {n:'乳清蛋白',   u:'份', q:1,  kcal:120, p:24,  c:3,   f:1.5, note:'1匙30g'},
+  {n:'無糖豆漿',   u:'g', q:400, kcal:33,  p:3.6, c:1.5, f:1.6},
+  {n:'鮮奶',       u:'g', q:290, kcal:63,  p:3.1, c:4.8, f:3.6},
+  {n:'無糖希臘優格', u:'g', q:170, kcal:59, p:10,  c:3.6, f:0.4},
+  {n:'香蕉',       u:'份', q:1,  kcal:105, p:1.3, c:27,  f:0.4, note:'1根'},
+  {n:'蘋果',       u:'份', q:1,  kcal:95,  p:0.5, c:25,  f:0.3, note:'1顆'},
+  {n:'堅果',       u:'g', q:30,  kcal:607, p:20,  c:21,  f:54},
+  {n:'花椰菜(熟)', u:'g', q:150, kcal:35,  p:2.4, c:7,   f:0.4},
+  {n:'雞腿便當',   u:'份', q:1,  kcal:850, p:35,  c:100, f:35},
+  {n:'排骨便當',   u:'份', q:1,  kcal:900, p:30,  c:105, f:40},
+  {n:'滷肉飯(1碗)', u:'份', q:1, kcal:500, p:15,  c:70,  f:17},
+  {n:'牛肉麵(1碗)', u:'份', q:1, kcal:600, p:30,  c:75,  f:18},
+  {n:'鮪魚御飯糰', u:'份', q:1,  kcal:210, p:6,   c:37,  f:4},
+  {n:'地瓜(超商中)', u:'份', q:1, kcal:180, p:3,  c:42,  f:0.2},
+  {n:'無糖拿鐵(中杯)', u:'份', q:1, kcal:110, p:6, c:9,  f:5.5},
+];
+
+/* ================= 訓練邏輯 ================= */
+function lastSession(exId){
+  const dates = Object.keys(S.logs).filter(d => d !== today() && S.logs[d][exId] && S.logs[d][exId].length).sort().reverse();
+  if(!dates.length) return null;
+  return { date: dates[0], sets: S.logs[dates[0]][exId] };
+}
+/* 重量建議:漸進超負荷 —— 上次全組達到次數上限 → 加重;有一組低於下限 → 維持鞏固 */
+function suggest(exId){
+  const ex = EX[exId];
+  const hist = lastSession(exId);
+  if(!hist){
+    if(ex.unit==='bw') return {w:0, note:'先做自重,行有餘力再負重', trend:'new'};
+    return {w:ex.start, note:'建議起始重量,以能標準完成為準', trend:'new'};
+  }
+  const w = Math.max(...hist.sets.map(s=>s.w));
+  const enough = hist.sets.length >= ex.sets;
+  const allTop = enough && hist.sets.every(s=>s.r >= ex.hi);
+  const anyLow = hist.sets.some(s=>s.r < ex.lo);
+  const d = hist.date.slice(5).replace('-','/');
+  if(allTop && ex.inc>0) return {w:+(w+ex.inc).toFixed(1), note:`上次(${d})全數達標 → 加重 ${ex.inc} kg`, trend:'up'};
+  if(anyLow) return {w, note:`上次(${d})有組數未達下限 → 維持重量鞏固`, trend:'hold'};
+  return {w, note:`維持 ${w}${UNIT_LABEL[ex.unit]},往次數上限 ${ex.hi} 下推進`, trend:'push'};
+}
+function todayLog(exId){ const t=S.logs[today()]; return (t && t[exId]) || []; }
+function addSet(exId, w, r){
+  const t = today();
+  if(!S.logs[t]) S.logs[t]={};
+  if(!S.logs[t][exId]) S.logs[t][exId]=[];
+  S.logs[t][exId].push({w:+w, r:+r});
+  save();
+}
+function undoSet(exId){
+  const t=today();
+  if(S.logs[t] && S.logs[t][exId]){ S.logs[t][exId].pop(); if(!S.logs[t][exId].length) delete S.logs[t][exId]; save(); }
+}
+/* 本週(週一起算)每個肌群完成組數 */
+function weekVolume(){
+  const now = new Date();
+  const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
+  const vol = {};
+  for(const d in S.logs){
+    const dt = new Date(d+'T12:00:00');
+    if(dt >= mon && dt <= now){
+      for(const exId in S.logs[d]){
+        const m = EX[exId] ? EX[exId].m : null;
+        if(m){ vol[m] = (vol[m]||0) + S.logs[d][exId].length; }
+      }
+    }
+  }
+  return vol;
+}
+/* 今日充足度 */
+function adequacy(){
+  const p = PROGRAM[new Date().getDay()];
+  if(!p) return null;
+  let planned=0, done=0, doneEx=0;
+  p.list.forEach(id=>{
+    planned += EX[id].sets;
+    const n = todayLog(id).length;
+    done += Math.min(n, EX[id].sets);
+    if(n >= EX[id].sets) doneEx++;
+  });
+  const pct = planned ? Math.round(done/planned*100) : 0;
+  let cls='bad', title='今日訓練量不足';
+  if(pct>=100){ cls='good'; title='今日訓練充足,收工!'; }
+  else if(pct>=90){ cls='good'; title='今日訓練大致充足'; }
+  else if(pct>=55){ cls='warn'; title='還差一點,再撐幾組'; }
+  return {pct, done, planned, doneEx, total:p.list.length, cls, title};
+}
+
+/* ================= 營養邏輯 ================= */
+function todayFood(){ return S.food[today()] || []; }
+function macroSum(){
+  return todayFood().reduce((a,f)=>({kcal:a.kcal+f.kcal, p:a.p+f.p, c:a.c+f.c, f:a.f+f.f}), {kcal:0,p:0,c:0,f:0});
+}
+function addFood(item){
+  const t=today();
+  if(!S.food[t]) S.food[t]=[];
+  S.food[t].push(item); save();
+}
+
+/* ================= UI:共用 ================= */
+const $ = s=>document.querySelector(s);
+let curView='Today';
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    curView=b.dataset.v;
+    document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('on', x===b));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    $('#view'+curView).classList.add('on');
+    render();
+    window.scrollTo(0,0);
+  });
+});
+function render(){
+  renderHeader();
+  if(curView==='Today') renderToday();
+  if(curView==='Plan') renderPlan();
+  if(curView==='Food') renderFood();
+  if(curView==='Stats') renderStats();
+}
+function renderHeader(){
+  const d = new Date(), p = PROGRAM[d.getDay()];
+  $('#hDate').textContent = `${d.getMonth()+1}月${d.getDate()}日 · ${DOW[d.getDay()]}`;
+  $('#hTitle').textContent = p ? p.name : '休息日';
+  $('#hPlate').style.borderColor = p ? `var(--${p.color})` : 'var(--muted)';
+}
+
+/* ================= 今日 ================= */
+function renderToday(){
+  const d=new Date(), p=PROGRAM[d.getDay()];
+  const el=$('#viewToday');
+  if(!p){
+    const nx = nextTrainingDay();
+    el.innerHTML = `
+      <div class="restday"><b>今天是休息日 😌</b>
+        讓肌肉恢復、睡滿 7–8 小時,比多練一天更有效。可以散步或伸展。<br>
+        下次訓練:<b style="color:${TEXT_COLOR[nx.color]}">${nx.label}</b>(已同步到你的 Google 日曆,19:00 提醒)
+      </div>
+      ${foodBriefHtml()}`;
+    return;
+  }
+  const a = adequacy();
+  const m = macroSum();
+  const pOk = m.p >= S.set.p;
+  el.innerHTML = `
+    <div class="day-banner">
+      <div class="plate" style="border-color:var(--${p.color})"></div>
+      <div style="flex:1"><b>${esc(p.name)}</b><span>${esc(p.sub)} · ${p.time}</span></div>
+    </div>
+    <div class="verdict ${a.cls}">
+      <b>${a.title}</b>
+      <div class="detail num">完成 ${a.done}/${a.planned} 組(${a.pct}%)· 動作完成 ${a.doneEx}/${a.total} · 蛋白質 ${Math.round(m.p)}/${S.set.p} g ${pOk?'✓':''}</div>
+    </div>
+    ${p.list.map((id,i)=>excCard(id,i,p.color)).join('')}
+    <div class="sub" style="margin-top:14px">${esc(p.note)}</div>
+  `;
+  bindToday(p);
+}
+function nextTrainingDay(){
+  const d = new Date();
+  for(let i=1;i<=7;i++){
+    const g=(d.getDay()+i)%7;
+    if(PROGRAM[g]) return {label:`${DOW[g]}|${PROGRAM[g].name}`, color:PROGRAM[g].color};
+  }
+}
+function excCard(id, i, color){
+  const ex=EX[id], sg=suggest(id), logged=todayLog(id);
+  const doneCls = logged.length>=ex.sets ? `style="color:var(--good)"` : `style="color:var(--muted)"`;
+  const trendMark = {up:'▲ ', hold:'', push:'', new:''}[sg.trend];
+  return `
+  <div class="card exc" data-ex="${id}">
+    <div class="exc-head">
+      <div class="no" style="border-color:${CSS_COLOR[color]};color:${TEXT_COLOR[color]}">${i+1}</div>
+      <div class="exc-title">
+        <b>${esc(ex.n)}</b>
+        <div class="meta">${esc(ex.hint)} · <span class="num">${ex.sets} × ${ex.lo===ex.hi?ex.lo:ex.lo+'–'+ex.hi}</span> · 休 ${restLabel(ex.rest)}</div>
+      </div>
+      <div class="exc-done num" ${doneCls}>${logged.length}/${ex.sets} 組</div>
+    </div>
+    <div class="suggest">
+      <span class="w num" style="color:${TEXT_COLOR[color]}">${trendMark}${ex.unit==='bw'&&sg.w===0?'自重':sg.w+' '+UNIT_LABEL[ex.unit]}</span>
+      <span class="why">${esc(sg.note)}</span>
+    </div>
+    ${logged.length?`<div class="sets">${logged.map((s,si)=>`<span class="setpill num">第${si+1}組 ${ex.unit==='bw'&&s.w===0?'自重':s.w+'kg'} × ${s.r}</span>`).join('')}</div>`:''}
+    <div class="logrow">
+      <div class="step">
+        <button data-a="w-" aria-label="減重量">−</button>
+        <div class="val num"><span data-f="w">${sg.w}</span><small>${UNIT_LABEL[ex.unit]}</small></div>
+        <button data-a="w+" aria-label="加重量">+</button>
+      </div>
+      <div class="step">
+        <button data-a="r-" aria-label="減次數">−</button>
+        <div class="val num"><span data-f="r">${ex.hi}</span><small>下</small></div>
+        <button data-a="r+" aria-label="加次數">+</button>
+      </div>
+      <button class="btn" data-a="log" style="flex-shrink:0">✓ 完成一組</button>
+    </div>
+    <div class="exc-foot">
+      <button class="linky" data-a="alts">替代動作</button>
+      <button class="linky" data-a="timer">⏱ 手動計時 ${restLabel(ex.rest)}</button>
+      ${logged.length?`<button class="linky" data-a="undo">撤銷上一組</button>`:''}
+    </div>
+    <div class="alts" hidden><b>動作推薦・替代</b>${ex.alts.map(esc).join('・')}</div>
+  </div>`;
+}
+function restLabel(sec){ return sec>=60 ? (sec%60? (sec/60).toFixed(1).replace('.0','')+' 分' : sec/60+' 分') : sec+' 秒'; }
+function bindToday(p){
+  document.querySelectorAll('.exc').forEach(card=>{
+    const id = card.dataset.ex, ex = EX[id];
+    const wEl = card.querySelector('[data-f=w]'), rEl = card.querySelector('[data-f=r]');
+    card.addEventListener('click', e=>{
+      const a = e.target.closest('[data-a]'); if(!a) return;
+      const act = a.dataset.a;
+      const step = ex.inc || 1;
+      if(act==='w-') wEl.textContent = Math.max(0, +(+wEl.textContent - step).toFixed(1));
+      if(act==='w+') wEl.textContent = +(+wEl.textContent + step).toFixed(1);
+      if(act==='r-') rEl.textContent = Math.max(1, +rEl.textContent - 1);
+      if(act==='r+') rEl.textContent = +rEl.textContent + 1;
+      if(act==='alts'){ const al=card.querySelector('.alts'); al.hidden=!al.hidden; }
+      if(act==='timer'){ startTimer(ex.rest, ex.n+' 組間休息'); }
+      if(act==='undo'){ undoSet(id); renderToday(); }
+      if(act==='log'){
+        addSet(id, +wEl.textContent, +rEl.textContent);
+        const done = todayLog(id).length;
+        if(done < ex.sets) startTimer(ex.rest, ex.n+' 組間休息('+done+'/'+ex.sets+' 組)');
+        renderToday();
+      }
+    });
+  });
+}
+function foodBriefHtml(){
+  const m = macroSum();
+  return `<section class="block"><h2 class="blk">今日營養</h2>
+    <div class="card meters">${meterHtml('蛋白質', m.p, S.set.p, 'g', true)}${meterHtml('熱量', m.kcal, S.set.kcal, 'kcal')}</div>
+  </section>`;
+}
+
+/* ================= 休息計時器 ================= */
+let tHandle=null, tLeft=0, tTotal=0;
+function startTimer(sec, label){
+  clearInterval(tHandle);
+  tLeft=sec; tTotal=sec;
+  $('#tLabel').textContent = label||'組間休息';
+  $('#timer').classList.add('on');
+  tick();
+  tHandle = setInterval(tick, 1000);
+}
+function tick(){
+  const mm = Math.floor(tLeft/60), ss = String(tLeft%60).padStart(2,'0');
+  $('#tNum').textContent = mm+':'+ss;
+  $('#tBar').style.width = (tTotal? (100 - tLeft/tTotal*100) : 0)+'%';
+  if(tLeft<=0){
+    clearInterval(tHandle);
+    beep();
+    if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+    $('#tLabel').textContent='休息結束,下一組!';
+    setTimeout(()=>$('#timer').classList.remove('on'), 4000);
+    return;
+  }
+  tLeft--;
+}
+$('#tStop').addEventListener('click', ()=>{ clearInterval(tHandle); $('#timer').classList.remove('on'); });
+$('#tPlus').addEventListener('click', ()=>{ tLeft+=30; tTotal+=30; });
+function beep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [0,.25,.5].forEach(t=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=880; g.gain.setValueAtTime(.3, ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+t+.2);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+.22);
+    });
+  }catch(e){}
+}
+
+/* ================= 課表 ================= */
+function renderPlan(){
+  const order=[1,2,4,5];
+  $('#viewPlan').innerHTML = `
+    <section class="block">
+      <h2 class="blk">每週課表</h2>
+      <div class="sub">槓片顏色 = 訓練日。點動作名稱可看替代選項。週三、週末休息。</div>
+      ${order.map(g=>`
+      <details class="card wk" ${g===new Date().getDay()?'open':''}>
+        <summary class="wk-head">
+          <div class="plate" style="border-color:var(--${PROGRAM[g].color});width:26px;height:26px;border-width:4px"></div>
+          <b>${DOW[g]}|${esc(PROGRAM[g].name)}</b>
+          <span class="tag num">${PROGRAM[g].time}</span>
+        </summary>
+        ${PROGRAM[g].list.map((id,i)=>{
+          const ex=EX[id];
+          return `<div class="exrow">
+            <span class="num" style="color:${TEXT_COLOR[PROGRAM[g].color]};font-weight:800">${i+1}</span>
+            <div class="nm"><b>${esc(ex.n)}</b><small>${esc(ex.hint)} · 替代:${ex.alts.map(esc).join('、')}</small></div>
+            <span class="rx num">${ex.sets}×${ex.lo===ex.hi?ex.lo:ex.lo+'–'+ex.hi}<br><span class="tag">休 ${restLabel(ex.rest)}</span></span>
+          </div>`;
+        }).join('')}
+        <div class="sub" style="padding:10px 14px;margin:0;border-top:1px solid var(--line)">${esc(PROGRAM[g].note)}</div>
+      </details>`).join('')}
+    </section>
+    <section class="block">
+      <h2 class="blk">📅 行事曆提醒</h2>
+      <div class="sub">四個每週重複的訓練行程已建立在你的 Google 日曆(週一/二/四/五 19:00,提前 1 小時提醒)。想改時間直接在 Google 日曆拖動即可。也可以下載 .ics 匯入其他行事曆:</div>
+      <button class="btn ghost" id="btnIcs">⬇ 下載 .ics 行事曆檔</button>
+    </section>
+    <section class="block">
+      <h2 class="blk">執行原則</h2>
+      <div class="card" style="padding:12px 14px;font-size:13.5px;display:grid;gap:10px">
+        <div><b>漸進超負荷</b><br><span style="color:var(--muted)">同重量做到次數上限全數達標 → 下週加重(app 會自動幫你算)。做不滿下限就維持原重量。</span></div>
+        <div><b>保留 1–2 下餘力(RIR 1–2)</b><br><span style="color:var(--muted)">每組結束應該還能再做 1–2 下,不必每組力竭。力竭留給最後一組或孤立動作。</span></div>
+        <div><b>蛋白質與熱量</b><br><span style="color:var(--muted)">以 ${S.set.bw} kg 計:蛋白質每天 ${Math.round(S.set.bw*1.6)}–${Math.round(S.set.bw*1.9)} g,增肌熱量小幅盈餘 +300 kcal,體重每月 +0.5–1 kg 為佳。</span></div>
+        <div><b>休息時間用計時器</b><br><span style="color:var(--muted)">每組記錄完成後 app 會自動倒數,休息一到就做下一組。</span></div>
+      </div>
+    </section>`;
+  $('#btnIcs').addEventListener('click', downloadIcs);
+}
+function downloadIcs(){
+  const tz='Asia/Taipei';
+  const days=[[1,'MO','20260713'],[2,'TU','20260714'],[4,'TH','20260709'],[5,'FR','20260710']];
+  const dur={1:'T201500',2:'T201000',4:'T201500',5:'T201000'};
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//DannyFit//TW\r\nBEGIN:VTIMEZONE\r\nTZID:Asia/Taipei\r\nBEGIN:STANDARD\r\nDTSTART:19700101T000000\r\nTZOFFSETFROM:+0800\r\nTZOFFSETTO:+0800\r\nEND:STANDARD\r\nEND:VTIMEZONE\r\n';
+  days.forEach(([g,by,date])=>{
+    const p=PROGRAM[g];
+    ics+='BEGIN:VEVENT\r\nUID:dannyfit-'+g+'@local\r\nDTSTAMP:20260707T000000Z\r\n'
+      +'DTSTART;TZID='+tz+':'+date+'T190000\r\nDTEND;TZID='+tz+':'+date+dur[g]+'\r\n'
+      +'RRULE:FREQ=WEEKLY;BYDAY='+by+'\r\n'
+      +'SUMMARY:🏋️ '+p.name+'\r\n'
+      +'DESCRIPTION:'+p.list.map((id,i)=>(i+1)+'. '+EX[id].n+' '+EX[id].sets+'x'+EX[id].lo+'-'+EX[id].hi).join('\\n')+'\r\n'
+      +'BEGIN:VALARM\r\nTRIGGER:-PT60M\r\nACTION:DISPLAY\r\nDESCRIPTION:準備健身\r\nEND:VALARM\r\nEND:VEVENT\r\n';
+  });
+  ics+='END:VCALENDAR\r\n';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download='danny-training.ics'; a.click();
+}
+
+/* ================= 飲食 ================= */
+function meterHtml(name, val, target, unit, band){
+  const pct = Math.min(100, val/target*100);
+  const over = val > target*1.25;
+  const ok = band ? val>=target : (val>=target*0.9 && !over);
+  return `<div class="meter">
+    <div class="mrow"><b>${name}</b><span class="v num">${Math.round(val)} <span class="tag">/ ${target} ${unit}</span></span></div>
+    <div class="track"><div class="fill ${ok?'ok':''}${over?' over':''}" style="width:${pct}%"></div>${band?`<div class="band" style="left:100%"></div>`:''}</div>
+  </div>`;
+}
+function renderFood(){
+  const m = macroSum(), list = todayFood();
+  const pLeft = Math.max(0, S.set.p - m.p);
+  $('#viewFood').innerHTML = `
+    <section class="block">
+      <h2 class="blk">今日營養</h2>
+      <div class="sub">${pLeft>0 ? `蛋白質還差 <b class="num" style="color:var(--ink)">${Math.round(pLeft)} g</b>,約等於 ${Math.ceil(pLeft/31*100)} g 雞胸肉或 ${Math.ceil(pLeft/24)} 匙乳清` : '✓ 蛋白質已達標,今天吃得很好!'}</div>
+      <div class="card meters">
+        ${meterHtml('蛋白質', m.p, S.set.p, 'g', true)}
+        ${meterHtml('熱量', m.kcal, S.set.kcal, 'kcal')}
+        ${meterHtml('碳水', m.c, S.set.c, 'g')}
+        ${meterHtml('脂肪', m.f, S.set.f, 'g')}
+      </div>
+    </section>
+    <section class="block">
+      <h2 class="blk">📷 拍照 AI 分析</h2>
+      <div class="sub">拍下餐點,AI 視覺辨識食物並估算蛋白質等營養素(需在設定填入 Anthropic API key)。</div>
+      <div class="card ai-zone">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="btnShot">📷 拍照 / 選照片</button>
+          <button class="btn ghost" id="btnAiGo" disabled>分析這張照片</button>
+        </div>
+        <input type="file" id="aiFile" accept="image/*" capture="environment" hidden>
+        <img id="aiPreview" alt="餐點照片預覽">
+        <div id="aiStatus" class="hintline"></div>
+        <div id="aiOut"></div>
+      </div>
+    </section>
+    <section class="block">
+      <h2 class="blk">快速新增</h2>
+      <div class="card">
+        <div class="dbsearch"><input type="text" id="fq" placeholder="搜尋食物,例如:雞胸、便當、乳清…" autocomplete="off"></div>
+        <div class="dbhits" id="fhits"></div>
+      </div>
+    </section>
+    <section class="block">
+      <h2 class="blk">今日已記錄 <span class="tag num">${list.length} 筆</span></h2>
+      <div class="card foodlist">
+        ${list.length ? list.map((f,i)=>`
+          <div class="fr">
+            <div class="fn">${esc(f.n)}<small class="num">${f.qLabel||''} · ${Math.round(f.kcal)} kcal · C${Math.round(f.c)} F${Math.round(f.f)}</small></div>
+            <span class="fp num" style="color:var(--good)">P ${Math.round(f.p)}g</span>
+            <button class="del" data-i="${i}" aria-label="刪除">✕</button>
+          </div>`).join('') : '<div class="empty">今天還沒有紀錄,拍張照或搜尋食物開始吧</div>'}
+      </div>
+    </section>`;
+  bindFood();
+}
+function bindFood(){
+  /* 刪除 */
+  document.querySelectorAll('.foodlist .del').forEach(b=>b.addEventListener('click', ()=>{
+    S.food[today()].splice(+b.dataset.i,1); save(); renderFood();
+  }));
+  /* 搜尋 */
+  const fq=$('#fq'), hits=$('#fhits');
+  const show = q=>{
+    const r = FOOD_DB.filter(f=>!q || f.n.includes(q)).slice(0, q?12:8);
+    hits.innerHTML = r.map((f,i)=>`<div class="hit" data-n="${esc(f.n)}"><span>${esc(f.n)}</span><span class="fm num">${f.u==='g'?'每100g':'每'+(f.note||'份')} · ${f.kcal} kcal · P${f.p}g</span></div>`).join('');
+    hits.querySelectorAll('.hit').forEach(h=>h.addEventListener('click', ()=>foodQtyModal(FOOD_DB.find(x=>x.n===h.dataset.n))));
+  };
+  fq.addEventListener('input', ()=>show(fq.value.trim()));
+  show('');
+  /* AI */
+  const file=$('#aiFile');
+  $('#btnShot').addEventListener('click', ()=>file.click());
+  file.addEventListener('change', ()=>{
+    if(!file.files[0]) return;
+    const img=$('#aiPreview');
+    img.src = URL.createObjectURL(file.files[0]);
+    img.style.display='block';
+    $('#btnAiGo').disabled=false;
+    $('#aiStatus').textContent='照片已載入,按「分析這張照片」開始。';
+  });
+  $('#btnAiGo').addEventListener('click', ()=>analyzePhoto(file.files[0]));
+}
+function foodQtyModal(f){
+  openModal(`
+    <h3>${esc(f.n)}</h3>
+    <div class="fld">
+      <label>${f.u==='g'?'份量(公克)':'份數'+(f.note?'('+f.note+')':'')}</label>
+      <input type="number" id="mQty" value="${f.q}" min="1" inputmode="decimal">
+      <div class="note num">每${f.u==='g'?'100g':(f.note||'份')}:${f.kcal} kcal · 蛋白 ${f.p}g · 碳水 ${f.c}g · 脂肪 ${f.f}g</div>
+    </div>
+    <button class="btn" id="mAdd" style="width:100%">加入今日紀錄</button>
+  `);
+  $('#mAdd').addEventListener('click', ()=>{
+    const q = Math.max(0, +$('#mQty').value || 0);
+    const k = f.u==='g' ? q/100 : q;
+    addFood({n:f.n, qLabel: f.u==='g'? q+' g' : q+' 份', kcal:f.kcal*k, p:f.p*k, c:f.c*k, f:f.f*k});
+    closeModal(); renderFood();
+  });
+}
+
+/* ---------- AI 拍照分析(Claude vision,BYOK)---------- */
+async function analyzePhoto(fileObj){
+  const st=$('#aiStatus'), out=$('#aiOut');
+  out.innerHTML='';
+  if(!S.set.key){
+    out.innerHTML = `<div class="ai-err">尚未設定 API key。點右上角 ⚙ 設定,貼上你的 Anthropic API key(於 platform.claude.com 取得)。金鑰只儲存在這台裝置。</div>`;
+    return;
+  }
+  st.textContent='🔍 AI 分析中,約需 10–20 秒…';
+  $('#btnAiGo').disabled=true;
+  try{
+    const b64 = await shrinkImage(fileObj, 1120);
+    const schema = {
+      type:'object',
+      properties:{
+        foods:{type:'array', items:{type:'object', properties:{
+          name:{type:'string', description:'食物名稱(繁體中文)'},
+          portion:{type:'string', description:'估計份量描述,如 150g、1碗'},
+          kcal:{type:'number'}, protein:{type:'number'}, carbs:{type:'number'}, fat:{type:'number'}
+        }, required:['name','portion','kcal','protein','carbs','fat'], additionalProperties:false}},
+        note:{type:'string', description:'一句話備註,如信心程度或建議'}
+      },
+      required:['foods','note'], additionalProperties:false
+    };
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key': S.set.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-opus-4-8',
+        max_tokens: 2000,
+        output_config:{format:{type:'json_schema', schema}},
+        messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:b64}},
+          {type:'text', text:'這是一位台灣使用者的餐點照片。請辨識照片中每項食物,以台灣常見份量估算每項的重量與營養素(kcal、蛋白質、碳水、脂肪,單位公克)。份量不確定時取中間值。'}
+        ]}]
+      })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error('API '+res.status+':'+(err.error&&err.error.message||'請檢查 API key 是否正確'));
+    }
+    const data = await res.json();
+    if(data.stop_reason==='refusal') throw new Error('模型拒絕了這次請求,請換一張照片試試。');
+    const text = (data.content.find(b=>b.type==='text')||{}).text;
+    const parsed = JSON.parse(text);
+    st.textContent='';
+    renderAiResult(parsed);
+  }catch(e){
+    st.textContent='';
+    let msg = esc(e.message||String(e));
+    if(e instanceof TypeError){
+      msg = '無法連線到 AI 服務。若你是在線上預覽版(Artifact)開啟,外部連線會被安全政策封鎖 —— 請改用 GitHub repo 裡的 <b>fitness-app/index.html</b> 存到手機/電腦後開啟,即可使用拍照分析。也可以先用下方「快速新增」手動記錄。';
+    }
+    $('#aiOut').innerHTML = `<div class="ai-err">${msg}</div>`;
+  }finally{
+    $('#btnAiGo').disabled=false;
+  }
+}
+function shrinkImage(fileObj, maxSide){
+  return new Promise((ok,bad)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const s=Math.min(1, maxSide/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      ok(c.toDataURL('image/jpeg',.82).split(',')[1]);
+    };
+    img.onerror=bad;
+    img.src=URL.createObjectURL(fileObj);
+  });
+}
+function renderAiResult(r){
+  const out=$('#aiOut');
+  if(!r.foods || !r.foods.length){ out.innerHTML='<div class="ai-err">照片中沒有辨識出食物,換個角度再拍一張?</div>'; return; }
+  out.innerHTML = `
+    <div class="ai-result">
+      ${r.foods.map((f,i)=>`
+        <div class="fr">
+          <input type="checkbox" checked id="aif${i}">
+          <label class="fn" for="aif${i}">${esc(f.name)} <span class="fm">${esc(f.portion)}</span></label>
+          <span class="fm num">${Math.round(f.kcal)}kcal · P${Math.round(f.protein)} C${Math.round(f.carbs)} F${Math.round(f.fat)}</span>
+        </div>`).join('')}
+      <div class="fr" style="justify-content:flex-end;gap:10px">
+        <span class="fm">${esc(r.note||'')}</span>
+        <button class="btn small" id="aiAdd">加入勾選項目</button>
+      </div>
+    </div>`;
+  $('#aiAdd').addEventListener('click', ()=>{
+    r.foods.forEach((f,i)=>{
+      if($('#aif'+i).checked) addFood({n:f.name, qLabel:f.portion, kcal:f.kcal, p:f.protein, c:f.carbs, f:f.fat});
+    });
+    renderFood();
+  });
+}
+
+/* ================= 數據 ================= */
+const MUSCLES = [
+  {k:'胸',  band:[13,15]}, {k:'背',  band:[13,15]},
+  {k:'股四'}, {k:'腿後'}, {k:'臀'}, {k:'肩'}, {k:'後肩'},
+  {k:'二頭'}, {k:'三頭'}, {k:'小腿'}, {k:'核心'},
+];
+function renderStats(){
+  const vol = weekVolume();
+  const maxV = Math.max(20, ...Object.values(vol));
+  const mains = [
+    {id:'bench', color:'red'}, {id:'squat', color:'blue'}, {id:'dead', color:'green'}
+  ];
+  $('#viewStats').innerHTML = `
+    <section class="block">
+      <h2 class="blk">本週訓練量(組數/肌群)</h2>
+      <div class="sub">週一起算。虛線區間 = 胸、背每週建議 13–15 組;一般肌群每週 10–20 組皆屬有效範圍。</div>
+      <div class="card vol">
+        ${MUSCLES.map(mu=>{
+          const v = vol[mu.k]||0;
+          const w = Math.min(100, v/maxV*100);
+          const inBand = mu.band ? (v>=mu.band[0] && v<=mu.band[1]) : null;
+          return `<div class="vrow">
+            <span class="vn">${mu.k}</span>
+            <div class="track">
+              ${mu.band?`<div class="band" style="left:${mu.band[0]/maxV*100}%;width:${(mu.band[1]-mu.band[0])/maxV*100}%"></div>`:''}
+              <div class="fill" style="width:${w}%;background:${inBand===true?'var(--good)':'var(--ink)'}"></div>
+            </div>
+            <span class="vv num">${v} 組${inBand===true?' ✓':(mu.band&&v>0?` / 目標${mu.band[0]}–${mu.band[1]}`:'')}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </section>
+    <section class="block">
+      <h2 class="blk">主項重量進展</h2>
+      <div class="sub">每次訓練的最重一組。持續記錄就會看到往右上走的線。</div>
+      ${mains.map(m=>liftChart(m.id, m.color)).join('')}
+    </section>`;
+}
+function liftChart(exId, color){
+  const ex = EX[exId];
+  const hist = Object.keys(S.logs).sort().filter(d=>S.logs[d][exId]&&S.logs[d][exId].length)
+    .map(d=>({d, w: Math.max(...S.logs[d][exId].map(s=>s.w))})).slice(-10);
+  let body;
+  if(hist.length < 2){
+    body = `<div class="empty">${hist.length? '再記錄一次就會出現趨勢線':'還沒有紀錄 —— 完成第一次'+ex.n+'後就會出現在這裡'}</div>`;
+  }else{
+    const W=520, H=150, padL=10, padR=48, padT=18, padB=24;
+    const ws = hist.map(h=>h.w);
+    const lo = Math.min(...ws), hi = Math.max(...ws);
+    const span = (hi-lo)||1;
+    const x = i => padL + i*(W-padL-padR)/(hist.length-1);
+    const y = w => padT + (H-padT-padB)*(1-(w-lo)/span);
+    const pts = hist.map((h,i)=>`${x(i)},${y(h.w).toFixed(1)}`).join(' ');
+    const last = hist[hist.length-1];
+    body = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${ex.n}重量趨勢">
+      <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="var(--line)" stroke-width="1"/>
+      <polyline points="${pts}" fill="none" stroke="${CSS_COLOR[color]}" stroke-width="2" stroke-linejoin="round"/>
+      ${hist.map((h,i)=>`<circle cx="${x(i)}" cy="${y(h.w).toFixed(1)}" r="${i===hist.length-1?5:3.5}" fill="${CSS_COLOR[color]}" stroke="var(--card)" stroke-width="2"><title>${h.d} · ${h.w} kg</title></circle>`).join('')}
+      <text x="${x(hist.length-1)+9}" y="${(+y(last.w)+4).toFixed(1)}" font-size="13" font-weight="800" fill="var(--ink)" class="num">${last.w}kg</text>
+      <text x="${padL}" y="${H-7}" font-size="10.5" fill="var(--muted)">${hist[0].d.slice(5)}</text>
+      <text x="${W-padR}" y="${H-7}" font-size="10.5" fill="var(--muted)" text-anchor="end">${last.d.slice(5)}</text>
+    </svg>`;
+  }
+  return `<div class="card chart-card">
+    <div class="ch-head"><span style="display:inline-block;width:10px;height:10px;background:${CSS_COLOR[color]};margin-right:2px"></span><b>${ex.n}</b><span class="num">${hist.length? '最近 '+hist.length+' 次':''}</span></div>
+    ${body}
+  </div>`;
+}
+
+/* ================= 設定 ================= */
+$('#btnSettings').addEventListener('click', ()=>{
+  openModal(`
+    <h3>設定</h3>
+    <div class="fld">
+      <label>Anthropic API Key(拍照 AI 分析用)</label>
+      <input type="password" id="sKey" value="${esc(S.set.key)}" placeholder="sk-ant-…" autocomplete="off">
+      <div class="note">於 platform.claude.com 建立。金鑰只存在這台裝置的瀏覽器,不會上傳到任何其他地方。</div>
+    </div>
+    <div class="fld"><label>體重(kg)</label><input type="number" id="sBw" value="${S.set.bw}" inputmode="decimal"></div>
+    <div class="fld"><label>每日蛋白質目標(g)</label><input type="number" id="sP" value="${S.set.p}"><div class="note">增肌建議 1.6–1.9 g/kg;以你目前體重約 ${Math.round(S.set.bw*1.6)}–${Math.round(S.set.bw*1.9)} g</div></div>
+    <div class="fld"><label>每日熱量目標(kcal)</label><input type="number" id="sK" value="${S.set.kcal}"><div class="note">增肌:維持熱量 +300 kcal 小幅盈餘</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="sSave" style="flex:1">儲存</button>
+      <button class="btn ghost" id="sClose">關閉</button>
+    </div>
+    <div class="note" style="margin-top:14px;color:var(--muted)">所有訓練與飲食資料皆儲存在此裝置(localStorage)。</div>
+  `);
+  $('#sSave').addEventListener('click', ()=>{
+    S.set.key = $('#sKey').value.trim();
+    S.set.bw = +$('#sBw').value || 68;
+    S.set.p = +$('#sP').value || 120;
+    S.set.kcal = +$('#sK').value || 2600;
+    save(); closeModal(); render();
+  });
+  $('#sClose').addEventListener('click', closeModal);
+});
+function openModal(html){ $('#modalIn').innerHTML=html; $('#modal').classList.add('on'); }
+function closeModal(){ $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
+
+/* ================= 啟動 ================= */
+render();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
