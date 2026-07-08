@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Danny 健身教練",
+    "slug": "danny-fit-coach",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.danny.fitcoach",
+      "infoPlist": {
+        "NSCameraUsageDescription": "拍攝餐點照片,進行 AI 營養分析。",
+        "NSPhotoLibraryUsageDescription": "選取餐點照片,進行 AI 營養分析。"
+      }
+    },
+    "android": {
+      "package": "com.danny.fitcoach",
+      "adaptiveIcon": {
+        "backgroundColor": "#FAFAF7",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "拍攝餐點照片,進行 AI 營養分析。",
+          "photosPermission": "選取餐點照片,進行 AI 營養分析。"
+        }
+      ],
+      "expo-notifications"
+    ]
+  }
+}
